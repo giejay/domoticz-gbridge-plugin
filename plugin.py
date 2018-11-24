@@ -123,9 +123,9 @@ class BasePlugin:
             action = match.group(2)
             adapter = adapter_by_type[action]
             if adapter:
-                if 'SwitchType' in device and device['SwitchType'] in adapter:
+                if 'Type' in device and device['Type'] in adapter:
                     # Specific adapter for this switch type
-                    adapter[device['SwitchType']].handleMqttMessage(device['idx'], str(message),
+                    adapter[device['Type']].handleMqttMessage(device['idx'], str(message),
                                                                     self.domoticz_port)
                 else:
                     adapter['Default'].handleMqttMessage(device['idx'], str(message), self.domoticz_port)
