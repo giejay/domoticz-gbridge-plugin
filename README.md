@@ -18,6 +18,11 @@ git clone --- gbridge
 
 Once plugin receive any message from mqtt server it will call the domoticz API and switch on a light/switch or change brightness of a device
 
+## Configure devices
+For this plugin to know which devices it may add to the gBridge, it checks the description of the device.
+`Description: gBridge` is making sure the device is added with its Domoticz name.
+`Description: gBridge:Another friendlyName` is creating a device in gBridge with "Another friendlyName"
+
 ## Plugin update
 
 1. Stop domoticz
