@@ -30,4 +30,9 @@ git pull
 
 ## Supported devices
 
-For now only the onoff and brightness traits are supported
+For now only the onoff and brightness traits are supported, this means the following Domoticz devices can be controlled:
+- Lights
+- Dimmers
+- Blinds (including Percentage and Percentage Inverted)
+- Scenes
+- (Dummy) switches

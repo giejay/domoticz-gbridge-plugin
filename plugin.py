@@ -1,5 +1,5 @@
 """
-<plugin key="Zigbee2MQTT" name="Zigbee2MQTT" version="0.0.14">
+<plugin key="gBridge" name="gBridge" version="0.0.14">
     <description>
       Plugin to add support for <a href="https://github.com/kservices/gBridge">gBridge</a> project<br/><br/>
       Specify MQTT server, the base topic, so gBridge/{your user id} and the gBridge url + credentials<br/>
