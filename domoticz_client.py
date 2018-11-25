@@ -22,7 +22,7 @@ class DomoticzClient:
         domoticz_devices_by_name = {}
         for device in domoticz_devices:
             if "gBridge" in device['Description']:
-                match = re.search('gBridge:(.*)', device['Description'])
+                match = re.search('gBridge:(.*)([\n|\r]?)', device['Description'])
                 if match:
                     name = match.group(1)
                 else:

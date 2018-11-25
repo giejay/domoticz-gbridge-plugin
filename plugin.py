@@ -6,12 +6,14 @@
     </description>
     <params>
         <param field="Address" label="MQTT Server address" width="300px" required="true" default="127.0.0.1:1883"/>
+        <param field="Username" label="MQTT username" width="300px" required="true" default=""/>
+        <param field="Password" label="MQTT password" width="300px" required="true" default=""/>
         <param field="Mode1" label="MQTT base topic" width="300px" required="true" default="gBridge/u1"/>
         <param field="Port" label="Domoticz port" width="300px" required="true" default="8080"/>
         <param field="Mode2" label="gBridge url" width="300px" required="true" default="http://localhost:8082"/>
-        <param field="Username" label="gBridge username" width="300px" required="true" default="username"/>
-        <param field="Password" label="gBridge password" width="300px" required="true" default="password"/>
-        <param field="Mode3" label="Delete removed Domoticz devices from gBridge" width="75px">
+        <param field="Mode3" label="gBridge username" width="300px" required="true" default="username"/>
+        <param field="Mode4" label="gBridge password" width="300px" required="true" default="password"/>
+        <param field="Mode5" label="Delete removed Domoticz devices from gBridge" width="75px">
             <options>
                 <option label="True" value="True"/>
                 <option label="False" value="False" default="true" />
@@ -51,7 +53,7 @@ class BasePlugin:
 
         self.base_topic = Parameters["Mode1"].strip()
         self.domoticz_port = int(Parameters["Port"].strip())
-        self.delete_removed_devices = Parameters["Mode3"].strip()
+        self.delete_removed_devices = Parameters["Mode5"].strip()
 
         self.mqttClient = MqttClient(Parameters["Address"].strip().split(":")[0],
                                      Parameters["Address"].strip().split(":")[1],
@@ -60,8 +62,8 @@ class BasePlugin:
                                      self.onMQTTPublish,
                                      self.onMQTTSubscribed)
         self.gBridgeClient = gBridgeClient(Parameters["Mode2"].strip(),
-                                           Parameters["Username"].strip(),
-                                           Parameters["Password"].strip())
+                                           Parameters["Mode3"].strip(),
+                                           Parameters["Mode4"].strip())
         domoticz_client = DomoticzClient(self.domoticz_port)
 
         bridgeDevices = self.gBridgeClient.fetchDevicesFromBridge()
