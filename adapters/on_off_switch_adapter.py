@@ -13,11 +13,22 @@ class OnOffSwitchAdapter(Adapter):
             command = 'Off'
 
         params = {
-            'param': self.getType(),
+            'param': self.getParamType(),
             'idx': device_id,
             'switchcmd': command
         }
         Adapter.callDomoticzApi(self, domoticz_port, urllib.parse.urlencode(params))
 
-    def getType(self):
+    def getBridgeType(self, device):
+        if 'Image' in device and device['Image'] == 'Light' and 'TypeImg' in device \
+                and (device['TypeImg'] == 'lightbulb' or device['TypeImg'] == 'dimmer'):
+            # Light
+            return 1
+        # Switch
+        return 3
+
+    def getParamType(self):
         return 'switchlight'
+
+    def getTraits(self):
+        return [1]

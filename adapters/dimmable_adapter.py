@@ -1,5 +1,6 @@
-from adapters.base_adapter import Adapter
 import urllib.parse
+
+from adapters.base_adapter import Adapter
 
 class DimmableAdapter(Adapter):
 
@@ -11,3 +12,10 @@ class DimmableAdapter(Adapter):
             'level': data
         }
         Adapter.callDomoticzApi(self, domoticz_port, urllib.parse.urlencode(params))
+
+    def getTraits(self):
+        return [1,2]
+
+    def getBridgeType(self, device):
+        return 1
+

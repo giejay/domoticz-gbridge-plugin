@@ -9,7 +9,7 @@ class DomoticzClient:
 
     def __init__(self, domoticz_port):
         self.DomoticzPort = domoticz_port
-        Domoticz.Debug("gBridgeClient::__init__")
+        Domoticz.Debug("DomoticzClient::__init__")
 
     def fetchDevicesFromDomoticz(self):
         req = urllib.request.Request(

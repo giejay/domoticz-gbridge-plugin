@@ -3,7 +3,7 @@ import json
 import urllib.parse
 import urllib.request
 from base64 import b64encode
-
+from adapters import adapter_by_type
 
 class gBridgeClient:
     Address = ""
@@ -24,16 +24,19 @@ class gBridgeClient:
         # Add devices which are not in gBridge yet
         for name, device in domoticz_devices_by_name.items():
             if name not in bridge_devices_by_name:
-                # Switch by default
-                type = 3
-                # On/Off trait
-                traits = [1]
 
-                if 'SwitchType' in device and device['SwitchType']  in self.brightness_devices:
-                    # Brightness trait
-                    traits.append(2)
-                    # Light
-                    type = 1
+                if 'SwitchType' in device and device['SwitchType'] in adapter_by_type:
+                    # Specific adapter for this switch type
+                    adapter = adapter_by_type[device['SwitchType']]
+                elif 'Type' in device and device['Type'] in adapter_by_type:
+                    # Scenes/Groups have no SwitchType, in that case, check the type
+                    adapter = adapter_by_type[device['Type']]
+                else:
+                    Domoticz.Error('No gBridge adapter found for device: ' + name)
+                    continue
+
+                traits = adapter.getTraits()
+                type = adapter.getBridgeType(device)
                 self.createDevice(name, type, traits)
 
         # remove devices in gbridge which are no longer in domoticz

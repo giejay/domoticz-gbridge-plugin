@@ -8,7 +8,13 @@ class Adapter:
         pass
 
     def handleMqttMessage(self, device_id, data, domoticz_port):
-        pass
+        raise NotImplementedError("Please Implement this method")
+
+    def getTraits(self):
+        raise NotImplementedError("Please Implement this method")
+
+    def getBridgeType(self, device):
+        raise NotImplementedError("Please Implement this method")
 
     def callDomoticzApi(self, domoticz_port, command):
         url = "http://localhost:%s/json.htm?type=command&%s" % (domoticz_port, command)
