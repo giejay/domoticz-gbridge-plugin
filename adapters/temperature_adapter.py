@@ -6,7 +6,7 @@ class TemperatureAdapter(Adapter):
     def __init__(self):
         Adapter.__init__(self)
 
-    def handleMqttMessage(self, device_id, data, domoticz_port):
+    def handleMqttMessage(self, device_id, data, action, domoticz_port):
         params = {
             'param': 'udevice',
             'idx': device_id,

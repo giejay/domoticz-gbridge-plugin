@@ -32,7 +32,7 @@
 import Domoticz
 import re
 
-from adapters import adapter_by_type
+from adapters import getAdapter
 from gbridge_client import gBridgeClient
 from domoticz_client import DomoticzClient
 from mqtt import MqttClient
@@ -123,14 +123,9 @@ class BasePlugin:
                 return
             device = self.domoticzDevicesByName[device_name]
             action = match.group(2)
-            adapter = adapter_by_type[action]
-            if adapter:
-                if 'Type' in device and device['Type'] in adapter:
-                    # Specific adapter for this switch type
-                    adapter[device['Type']].handleMqttMessage(device['idx'], str(message),
-                                                                    self.domoticz_port)
-                else:
-                    adapter['Default'].handleMqttMessage(device['idx'], str(message), self.domoticz_port)
+            adapter = getAdapter(device)
+            if adapter is not None:
+                adapter.handleMqttMessage(device['idx'], str(message), action, self.domoticz_port)
             else:
                 Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, device_name))
 

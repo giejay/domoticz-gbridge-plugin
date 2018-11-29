@@ -14,3 +14,11 @@ adapter_by_type = {
     'Scene': SceneAdapter(),
     'Group': SceneAdapter()
 }
+
+def getAdapter(device):
+    if 'SwitchType' in device and device['SwitchType'] in adapter_by_type:
+        # Specific adapter for this switch type
+        return adapter_by_type[device['SwitchType']]
+    elif 'Type' in device and device['Type'] in adapter_by_type:
+        return adapter_by_type[device['Type']]
+    return None
