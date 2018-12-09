@@ -66,7 +66,7 @@ class MqttClient:
             self.mqttConn.Send({'Verb': 'PUBLISH', 'Topic': topic, 'Payload': bytearray(payload, 'utf-8'), 'Retain': retain})
 
     def Subscribe(self, topics):
-        Domoticz.Debug("MqttClient::Subscribe")
+        Domoticz.Debug("MqttClient::Subscribe" + str(topics))
         subscriptionlist = []
         for topic in topics:
             subscriptionlist.append({'Topic':topic, 'QoS':0})

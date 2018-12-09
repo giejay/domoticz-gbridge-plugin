@@ -4,6 +4,7 @@ import urllib.parse
 import urllib.request
 from base64 import b64encode
 from adapters import adapter_by_type
+from urllib.error import URLError, HTTPError
 
 class gBridgeClient:
     Address = ""
@@ -49,17 +50,28 @@ class gBridgeClient:
         url = "%s/api/device" % self.Address
         req = urllib.request.Request(url)
         req.add_header("Authorization", 'Basic %s' % self.getAuthHeader())
-        response = urllib.request.urlopen(req).read().decode('utf-8')
-        Domoticz.Debug("Fetching all devices from gBridge %s" % response)
-        return json.loads(response)
+        return json.loads(self.callAPI(req, 'Fetching all devices from gBridge'))
 
     def deleteDevice(self, id):
         gBridgeUrl = "%s/api/device/%s" % (self.Address, id)
         req = urllib.request.Request(gBridgeUrl, method='DELETE')
         req.add_header("Authorization", 'Basic %s' % self.getAuthHeader())
-        response = str(urllib.request.urlopen(req).read())
-        Domoticz.Debug('Delete device %s which is no longer in Domoticz, response: %s' % (id, response))
-        return response == b'Created'
+        return self.callAPI(req, 'Delete device %s' % id) == 'Created'
+
+    def callAPI(self, request, action):
+        try:
+            response = urllib.request.urlopen(request).read().decode('utf-8')
+        except HTTPError as e:
+            Domoticz.Error('The server couldn\'t fulfill the request: %s.' % action)
+            Domoticz.Error('Error code: %d, reason: %s' % (e.code, e.reason))
+            raise
+        except URLError as e:
+            Domoticz.Error('We failed to reach a server.')
+            Domoticz.Error('Reason: %s' % e.reason)
+            raise
+        else:
+            Domoticz.Debug('Successfully executed action: %s, response: %s' % (action, response))
+            return response
 
     def createDevice(self, name, type, traits):
         values = {'name': name, 'type': type, 'traits': traits, 'topicPrefix': name}
@@ -67,10 +79,7 @@ class gBridgeClient:
         req = urllib.request.Request("%s/api/device" % self.Address, data)
         req.add_header('Content-Type', 'application/json')
         req.add_header("Authorization", 'Basic %s' % self.getAuthHeader())
-        response = str(urllib.request.urlopen(req).read())
-        Domoticz.Debug(
-            'Try to create device %s for type %s with traits %s, response: %s' % (name, type, str(traits), response))
-        return response == b'Created'
+        return self.callAPI(req, 'Try to create device %s for type %s with traits %s' % (name, type, str(traits)))
 
     def getAuthHeader(self):
         return b64encode(bytes("%s:%s" % (self.Username, self.Password), 'utf-8')).decode("ascii")
