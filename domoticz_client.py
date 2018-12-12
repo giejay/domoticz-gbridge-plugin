@@ -25,7 +25,7 @@ class DomoticzClient:
         return domoticz_devices_by_name
 
     def fetchDevicesFromDomoticz(self):
-        url = "http://localhost:%d/json.htm?type=devices&filter=all&used=true&order=Name" % self.DomoticzPort
+        url = "http://127.0.0.1:%d/json.htm?type=devices&filter=all&used=true&order=Name" % self.DomoticzPort
         req = urllib.request.Request(url)
         try:
             response = urllib.request.urlopen(req).read().decode('utf-8')

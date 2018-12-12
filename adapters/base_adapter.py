@@ -17,7 +17,7 @@ class Adapter:
         raise NotImplementedError("Please Implement this method")
 
     def callDomoticzApi(self, domoticz_port, command):
-        url = "http://localhost:%s/json.htm?type=command&%s" % (domoticz_port, command)
+        url = "http://127.0.0.1:%s/json.htm?type=command&%s" % (domoticz_port, command)
         Domoticz.Debug('Executing command for device: %s' % command)
         req = urllib.request.Request(url)
         response = urllib.request.urlopen(req).read()
