@@ -38,5 +38,4 @@ class DomoticzClient:
             Domoticz.Error('Reason: %s' % e.reason)
             raise
         else:
-            Domoticz.Debug('Successfully fetched devices from Domoticz, response: %s' % response)
             return json.loads(response)['result']

@@ -40,6 +40,7 @@ from mqtt import MqttClient
 
 class BasePlugin:
     mqttClient = None
+    domoticzDevicesByName = None
 
     def onStart(self):
         self.debugging = Parameters["Mode6"]
@@ -64,15 +65,20 @@ class BasePlugin:
         self.gBridgeClient = gBridgeClient(Parameters["Mode2"].strip(),
                                            Parameters["Mode3"].strip(),
                                            Parameters["Mode4"].strip())
-        domoticz_client = DomoticzClient(self.domoticz_port)
+        self.domoticz_client = DomoticzClient(self.domoticz_port)
 
-        bridgeDevices = self.gBridgeClient.fetchDevicesFromBridge()
-        domoticzDevices = domoticz_client.fetchDevicesFromDomoticz()
-        self.domoticzDevicesByName = domoticz_client.getDevicesByName(domoticzDevices)
-        Domoticz.Debug('Domoticz devices available for gBridge: ' + str(self.domoticzDevicesByName))
-        self.gBridgeClient.syncDevices(self.domoticzDevicesByName, bridgeDevices, self.delete_removed_devices == 'True')
+        self.syncDevices()
 
         Domoticz.Debug("Done")
+
+    def syncDevices(self):
+        Domoticz.Debug('Starting sync')
+        bridge_devices = self.gBridgeClient.fetchDevicesFromBridge()
+        domoticz_devices = self.domoticz_client.fetchDevicesFromDomoticz()
+        self.domoticzDevicesByName = self.domoticz_client.getDevicesByName(domoticz_devices)
+        Domoticz.Debug('Domoticz devices available for gBridge: ' + str(self.domoticzDevicesByName.keys()))
+        self.gBridgeClient.syncDevices(self.domoticzDevicesByName, bridge_devices,
+                                       self.delete_removed_devices == 'True')
 
     def onStop(self):
         Domoticz.Debug("onStop called")
@@ -114,20 +120,23 @@ class BasePlugin:
     def onMQTTPublish(self, topic, message):
         Domoticz.Debug("MQTT message: " + topic + " " + str(message))
 
-        match = re.search(self.base_topic + '/(.*)/(.*)', topic)
+        if message == 'SYNC':
+            self.syncDevices()
+        else:
+            match = re.search(self.base_topic + '/(.*)/(.*)', topic)
 
-        if match:
-            device_name = match.group(1)
-            if device_name not in self.domoticzDevicesByName:
-                Domoticz.Log('Received message for device which is not in Domoticz: %s, skipping' % device_name)
-                return
-            device = self.domoticzDevicesByName[device_name]
-            action = match.group(2)
-            adapter = getAdapter(device)
-            if adapter is not None:
-                adapter.handleMqttMessage(device['idx'], str(message), action, self.domoticz_port)
-            else:
-                Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, device_name))
+            if match:
+                device_name = match.group(1)
+                if device_name not in self.domoticzDevicesByName:
+                    Domoticz.Log('Received message for device which is not in Domoticz: %s, skipping' % device_name)
+                    return
+                device = self.domoticzDevicesByName[device_name]
+                action = match.group(2)
+                adapter = getAdapter(device)
+                if adapter is not None:
+                    adapter.handleMqttMessage(device['idx'], str(message), action, self.domoticz_port)
+                else:
+                    Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, device_name))
 
 
 global _plugin
