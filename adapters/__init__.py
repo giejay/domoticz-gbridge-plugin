@@ -1,6 +1,7 @@
 from adapters.dimmable_adapter import DimmableAdapter
 from adapters.on_off_switch_adapter import OnOffSwitchAdapter
 from adapters.scene_adapter import SceneAdapter
+from adapters.temperature_adapter import TemperatureAdapter
 
 adapter_by_type = {
     'Dimmer': DimmableAdapter(),
@@ -12,7 +13,8 @@ adapter_by_type = {
     'Push On Button': OnOffSwitchAdapter(),
     'Push Off Button': OnOffSwitchAdapter(),
     'Scene': SceneAdapter(),
-    'Group': SceneAdapter()
+    'Group': SceneAdapter(),
+    'SetPoint': TemperatureAdapter()
 }
 
 def getAdapter(device):
