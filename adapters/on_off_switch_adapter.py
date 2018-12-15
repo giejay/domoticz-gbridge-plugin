@@ -20,8 +20,7 @@ class OnOffSwitchAdapter(Adapter):
         Adapter.callDomoticzApi(self, domoticz_port, urllib.parse.urlencode(params))
 
     def getBridgeType(self, device):
-        if 'Image' in device and device['Image'] == 'Light' and 'TypeImg' in device \
-                and (device['TypeImg'] == 'lightbulb' or device['TypeImg'] == 'dimmer'):
+        if 'TypeImg' in device and (device['TypeImg'] == 'lightbulb' or device['TypeImg'] == 'dimmer'):
             # Light
             return 1
         # Switch

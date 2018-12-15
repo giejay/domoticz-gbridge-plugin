@@ -14,7 +14,8 @@ adapter_by_type = {
     'Push Off Button': OnOffSwitchAdapter(),
     'Scene': SceneAdapter(),
     'Group': SceneAdapter(),
-    'Thermostat': TemperatureAdapter()
+    'Thermostat': TemperatureAdapter(),
+    'Door Lock': OnOffSwitchAdapter()
 }
 
 def getAdapter(device):
