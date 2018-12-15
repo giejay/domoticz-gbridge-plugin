@@ -19,4 +19,4 @@ class TemperatureAdapter(Adapter):
         return 5
 
     def getTraits(self):
-        return [5]
+        return [4]
