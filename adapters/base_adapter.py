@@ -7,7 +7,7 @@ class Adapter:
     def __init__(self):
         pass
 
-    def handleMqttMessage(self, device_id, data, action, domoticz_port):
+    def handleMqttMessage(self, device, data, action, domoticz_port):
         raise NotImplementedError("Please Implement this method")
 
     def getTraits(self):
