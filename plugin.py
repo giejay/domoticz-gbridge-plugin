@@ -41,6 +41,7 @@ from mqtt import MqttClient
 class BasePlugin:
     mqttClient = None
     domoticzDevicesByName = None
+    domoticzDevicesById = None
 
     def onStart(self):
         self.debugging = Parameters["Mode6"]
@@ -76,6 +77,7 @@ class BasePlugin:
         bridge_devices = self.gBridgeClient.fetchDevicesFromBridge()
         domoticz_devices = self.domoticz_client.fetchDevicesFromDomoticz()
         self.domoticzDevicesByName = self.domoticz_client.getDevicesByName(domoticz_devices)
+        self.domoticzDevicesById = {x['idx']: x for x in list(self.domoticzDevicesByName.values())}
         Domoticz.Debug('Domoticz devices available for gBridge: ' + str(self.domoticzDevicesByName.keys()))
         self.gBridgeClient.syncDevices(self.domoticzDevicesByName, bridge_devices,
                                        self.delete_removed_devices == 'True')
@@ -126,11 +128,15 @@ class BasePlugin:
             match = re.search(self.base_topic + '/(.*)/(.*)', topic)
 
             if match:
-                device_name = match.group(1)
-                if device_name not in self.domoticzDevicesByName:
-                    Domoticz.Log('Received message for device which is not in Domoticz: %s, skipping' % device_name)
+                device_id = match.group(1)
+                # Backwards compatibility, previously the device name was used as topic name
+                if device_id in self.domoticzDevicesByName:
+                    device = self.domoticzDevicesByName[device_id]
+                elif device_id in self.domoticzDevicesById:
+                    device = self.domoticzDevicesById[device_id]
+                else:
+                    Domoticz.Log('Received message for device which is not in Domoticz: %s, skipping' % device_id)
                     return
-                device = self.domoticzDevicesByName[device_name]
                 action = match.group(2)
                 adapter = getAdapter(device)
                 if adapter is not None:

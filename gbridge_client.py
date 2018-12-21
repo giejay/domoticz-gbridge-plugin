@@ -33,7 +33,7 @@ class gBridgeClient:
 
                 traits = adapter.getTraits()
                 type = adapter.getBridgeType(device)
-                self.createDevice(name, type, traits)
+                self.createDevice(name, type, traits, device['idx'])
 
         # remove devices in gbridge which are no longer in domoticz
         if delete_removed_devices:
@@ -68,8 +68,8 @@ class gBridgeClient:
             Domoticz.Debug('Successfully executed action: %s, response: %s' % (action, response))
             return response
 
-    def createDevice(self, name, type, traits):
-        values = {'name': name, 'type': type, 'traits': traits, 'topicPrefix': name}
+    def createDevice(self, name, type, traits, id):
+        values = {'name': name, 'type': type, 'traits': traits, 'topicPrefix': id}
         data = json.dumps(values).encode('ascii')
         req = urllib.request.Request("%s/api/device" % self.Address, data)
         req.add_header('Content-Type', 'application/json')
