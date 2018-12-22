@@ -19,6 +19,3 @@ class DimmableAdapter(OnOffSwitchAdapter):
     def getTraits(self):
         return [1,2]
 
-    def getBridgeType(self, device):
-        return 1
-
