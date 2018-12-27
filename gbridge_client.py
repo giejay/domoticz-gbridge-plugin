@@ -60,7 +60,7 @@ class gBridgeClient:
 
     def callAPI(self, request, action):
         try:
-            Domoticz.Debug('Calling API: %s' % str(request.get_full_url()))
+            Domoticz.Debug('Calling API for action: %s, url: %s' % (action, str(request.get_full_url())))
             response = urllib.request.urlopen(request).read().decode('utf-8')
         except HTTPError as e:
             Domoticz.Error('The server couldn\'t fulfill the request: %s.' % action)
