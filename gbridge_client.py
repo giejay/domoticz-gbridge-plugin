@@ -4,6 +4,7 @@ import urllib.parse
 import urllib.request
 from base64 import b64encode
 from urllib.error import URLError, HTTPError
+from json import JSONDecodeError
 from adapters import getAdapter
 
 
@@ -45,7 +46,11 @@ class gBridgeClient:
         url = "%s/api/device" % self.Address
         req = urllib.request.Request(url)
         req.add_header("Authorization", 'Basic %s' % self.getAuthHeader())
-        return json.loads(self.callAPI(req, 'Fetching all devices from gBridge'))
+        try:
+            return json.loads(self.callAPI(req, 'Fetching all devices from gBridge'))
+        except JSONDecodeError as e:
+            Domoticz.Error('Could not decode JSON due to: %s, json: %s' % (e.msg, e.doc))
+            raise e
 
     def deleteDevice(self, id):
         gBridgeUrl = "%s/api/device/%s" % (self.Address, id)
