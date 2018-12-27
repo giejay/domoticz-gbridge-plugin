@@ -143,7 +143,7 @@ class BasePlugin:
                 adapter = getAdapter(device)
                 if adapter is not None:
                     adapter.handleMqttMessage(device, str(message), action, self.domoticz_port)
-                    adapter.publishState(self.mqttClient, topic + '/set', message)
+                    adapter.publishState(self.mqttClient, device, topic + '/set', message)
                 else:
                     Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
 
