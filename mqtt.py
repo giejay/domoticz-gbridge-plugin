@@ -59,11 +59,11 @@ class MqttClient:
             self.mqttConn.Send({'Verb': 'PING'})
 
     def Publish(self, topic, payload, retain = 0):
-        Domoticz.Debug("MqttClient::Publish " + topic + " (" + payload + ")")
+        Domoticz.Debug("MqttClient::Publish " + topic + " (" + str(payload) + ")")
         if (self.mqttConn == None or not self.isConnected):
             self.Open()
         else:
-            self.mqttConn.Send({'Verb': 'PUBLISH', 'Topic': topic, 'Payload': bytearray(payload, 'utf-8'), 'Retain': retain})
+            self.mqttConn.Send({'Verb': 'PUBLISH', 'Topic': topic, 'Payload': bytearray(str(payload), 'utf-8'), 'Retain': retain})
 
     def Subscribe(self, topics):
         Domoticz.Debug("MqttClient::Subscribe" + str(topics))

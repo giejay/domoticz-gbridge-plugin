@@ -22,3 +22,6 @@ class Adapter:
         req = urllib.request.Request(url)
         response = urllib.request.urlopen(req).read()
         return response.decode('utf-8')
+
+    def publishState(self, mqtt_client, topic, message):
+        mqtt_client.Publish(topic, message)

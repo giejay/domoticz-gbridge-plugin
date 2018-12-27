@@ -124,6 +124,8 @@ class BasePlugin:
 
         if message == 'SYNC':
             self.syncDevices()
+        elif topic.endswith('/set'):
+            Domoticz.Debug('Published new state for device, topic: %s, state: %s' % (topic, message))
         else:
             match = re.search(self.base_topic + '/(.*)/(.*)', topic)
 
@@ -141,6 +143,7 @@ class BasePlugin:
                 adapter = getAdapter(device)
                 if adapter is not None:
                     adapter.handleMqttMessage(device, str(message), action, self.domoticz_port)
+                    adapter.publishState(self.mqttClient, topic + '/set', message)
                 else:
                     Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
 
