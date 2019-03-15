@@ -7,10 +7,10 @@ class OnOffSwitchAdapter(Adapter):
         Adapter.__init__(self)
 
     def handleMqttMessage(self, device, data, action, domoticz_port):
-        if data == '1':
-            command = 'On'
-        else:
+        if data == '0':
             command = 'Off'
+        else:
+            command = 'On'
 
         params = {
             'param': self.getParamType(),
