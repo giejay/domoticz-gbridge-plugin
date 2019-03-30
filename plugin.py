@@ -6,8 +6,8 @@
     </description>
     <params>
         <param field="Address" label="MQTT Server address" width="300px" required="true" default="127.0.0.1:1883"/>
-        <param field="Username" label="MQTT username" width="300px" required="true" default=""/>
-        <param field="Password" label="MQTT password" width="300px" required="true" default="" password="true"/>
+        <param field="Username" label="MQTT username" width="300px" required="false" default=""/>
+        <param field="Password" label="MQTT password" width="300px" required="false" default="" password="true"/>
         <param field="Mode1" label="MQTT base topic" width="300px" required="true" default="gBridge/u1"/>
         <param field="Port" label="Domoticz port" width="300px" required="true" default="8080"/>
         <param field="Mode2" label="gBridge url" width="300px" required="true" default="http://localhost:8082"/>
