@@ -58,9 +58,9 @@ class BasePlugin:
         self.domoticz_port = int(Parameters["Port"].strip())
         self.delete_removed_devices = Parameters["Mode5"].strip()
         if Parameters["Mode6"].find("localhost") >= 0:
-            self.domoticz_mqtt_used = true
+            self.domoticz_mqtt_used = True
         else :
-            self.domoticz_mqtt_used = false
+            self.domoticz_mqtt_used = False
         
         self.mqttClient = MqttClient(Parameters["Address"].strip().split(":")[0],
                                      Parameters["Address"].strip().split(":")[1],
@@ -162,7 +162,7 @@ class BasePlugin:
                     adapter = getAdapter(device)
                     if adapter is not None:
                         adapter.handleMqttMessage(device, str(message), action, self.domoticz_port)
-                        if self.domoticz_mqtt_used == 'False':
+                        if self.domoticz_mqtt_used == False:
                             adapter.publishState(self.mqttClient, device, topic + '/set', message)
                     else:
                         Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
