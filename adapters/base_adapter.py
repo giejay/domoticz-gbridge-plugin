@@ -24,4 +24,4 @@ class Adapter:
         return response.decode('utf-8')
 
     def publishState(self, mqtt_client, device, topic, message):
-        mqtt_client.Publish(topic, message)
+        raise NotImplementedError("Please Implement this method")
