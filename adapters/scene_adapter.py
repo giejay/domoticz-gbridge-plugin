@@ -10,3 +10,7 @@ class SceneAdapter(OnOffSwitchAdapter):
 
     def getParamType(self):
         return 'switchscene'
+    
+    def publishState(self, mqtt_client, device, topic, message):
+        #no state on scene, each device is updated if in the gbridge base
+        return
