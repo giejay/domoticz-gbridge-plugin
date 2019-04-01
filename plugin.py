@@ -14,6 +14,7 @@
                 <option label="True" value="True"/>
                 <option label="False" value="False" default="true" />
             </options>
+        </param>           
         <param field="Port" label="Domoticz port" width="300px" required="true" default="8080"/>
         <param field="Mode2" label="gBridge url" width="300px" required="true" default="http://localhost:8082"/>
         <param field="Mode3" label="gBridge username" width="300px" required="true" default="username"/>
