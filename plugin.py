@@ -126,7 +126,6 @@ class BasePlugin:
                 device = self.domoticzDevicesByName[message['name']]
                 adapter = getAdapter(device)
                 if adapter is not None:
-                    Domoticz.Debug('Send message to Gbridge : %s %s' % (str(message['idx']), message['nvalue']))
                     adapter.publishState(self.mqttClient, device, self.base_topic , message)
                 else:
                     Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
