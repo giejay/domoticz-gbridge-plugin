@@ -3,6 +3,7 @@
     <description>
       Plugin to add support for <a href="https://github.com/kservices/gBridge">gBridge</a> project<br/><br/>
       Specify MQTT server, the base topic, so gBridge/{your user id} and the gBridge url + credentials<br/>
+      If using local MQTT server, add also "MQTT Client Gateway with LAN Interface", config on Topic "out" to have the live update.<br/>
     </description>
     <params>
         <param field="Address" label="MQTT Server address" width="300px" required="true" default="127.0.0.1:1883"/>
