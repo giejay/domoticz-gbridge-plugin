@@ -18,4 +18,13 @@ class DimmableAdapter(OnOffSwitchAdapter):
 
     def getTraits(self):
         return [1,2]
-
+    
+    def publishState(self, mqtt_client, device, topic, message):
+        topic = topic + '/' + str(message['idx'])
+        if message['nvalue'] == 0:
+            status = '0'
+            mqtt_client.Publish(topic + '/onoff/set', status)
+        else:
+            status = str(message['svalue1'])
+            mqtt_client.Publish(topic + '/onoff/set', '1')
+            mqtt_client.Publish(topic + '/brightness/set', status)
