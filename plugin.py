@@ -9,6 +9,11 @@
         <param field="Username" label="MQTT username" width="300px" required="false" default=""/>
         <param field="Password" label="MQTT password" width="300px" required="false" default="" password="true"/>
         <param field="Mode1" label="MQTT base topic" width="300px" required="true" default="gBridge/u1"/>
+        <param field="Mode7" label="MQTT from Domoticz used" width="75px">
+            <options>
+                <option label="True" value="True"/>
+                <option label="False" value="False" default="true" />
+            </options>
         <param field="Port" label="Domoticz port" width="300px" required="true" default="8080"/>
         <param field="Mode2" label="gBridge url" width="300px" required="true" default="http://localhost:8082"/>
         <param field="Mode3" label="gBridge username" width="300px" required="true" default="username"/>
@@ -56,7 +61,8 @@ class BasePlugin:
         self.base_topic = Parameters["Mode1"].strip()
         self.domoticz_port = int(Parameters["Port"].strip())
         self.delete_removed_devices = Parameters["Mode5"].strip()
-
+        self.domoticz_mqtt_used = Parameters["Mode7"].strip()
+        
         self.mqttClient = MqttClient(Parameters["Address"].strip().split(":")[0],
                                      Parameters["Address"].strip().split(":")[1],
                                      self.onMQTTConnected,
@@ -157,7 +163,8 @@ class BasePlugin:
                     adapter = getAdapter(device)
                     if adapter is not None:
                         adapter.handleMqttMessage(device, str(message), action, self.domoticz_port)
-                        #adapter.publishState(self.mqttClient, device, topic + '/set', message)
+                        if self.domoticz_mqtt_used == 'False'
+                            adapter.publishState(self.mqttClient, device, topic + '/set', message)
                     else:
                         Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
 
