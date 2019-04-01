@@ -122,8 +122,14 @@ class BasePlugin:
     def onMQTTPublish(self, topic, message):
         Domoticz.Debug("MQTT message: " + topic + " " + str(message))
         if str(topic) == 'domoticz/out':
-            if message['name'] in self.domoticzDevicesByName:
-                device = self.domoticzDevicesByName[message['name']]
+            if message.get('name') is not None:
+                name = message['name']
+            elif message.get('Name') is not None:
+                name = message['Name']
+            else:
+                return
+            if name in self.domoticzDevicesByName:
+                device = self.domoticzDevicesByName[name]
                 adapter = getAdapter(device)
                 if adapter is not None:
                     adapter.publishState(self.mqttClient, device, self.base_topic , message)
