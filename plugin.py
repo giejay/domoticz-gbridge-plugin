@@ -9,23 +9,23 @@
         <param field="Username" label="MQTT username" width="300px" required="false" default=""/>
         <param field="Password" label="MQTT password" width="300px" required="false" default="" password="true"/>
         <param field="Mode1" label="MQTT base topic" width="300px" required="true" default="gBridge/u1"/>
-        <param field="Mode2" label="MQTT from Domoticz used" width="75px">
+        <param field="Mode7" label="MQTT from Domoticz used" width="75px">
             <options>
                 <option label="True" value="True"/>
                 <option label="False" value="False" default="true" />
             </options>
         </param>           
         <param field="Port" label="Domoticz port" width="300px" required="true" default="8080"/>
-        <param field="Mode3" label="gBridge url" width="300px" required="true" default="http://localhost:8082"/>
-        <param field="Mode4" label="gBridge username" width="300px" required="true" default="username"/>
-        <param field="Mode5" label="gBridge password" width="300px" required="true" default="password" password="true"/>
-        <param field="Mode6" label="Delete removed Domoticz devices from gBridge" width="75px">
+        <param field="Mode2" label="gBridge url" width="300px" required="true" default="http://localhost:8082"/>
+        <param field="Mode3" label="gBridge username" width="300px" required="true" default="username"/>
+        <param field="Mode4" label="gBridge password" width="300px" required="true" default="password" password="true"/>
+        <param field="Mode5" label="Delete removed Domoticz devices from gBridge" width="75px">
             <options>
                 <option label="True" value="True"/>
                 <option label="False" value="False" default="true" />
             </options>
         </param>
-        <param field="Mode7" label="Debug" width="75px">
+        <param field="Mode6" label="Debug" width="75px">
             <options>
                 <option label="Verbose" value="Verbose"/>
                 <option label="True" value="Debug"/>
@@ -50,7 +50,7 @@ class BasePlugin:
     domoticzDevicesById = None
 
     def onStart(self):
-        self.debugging = Parameters["Mode7"]
+        self.debugging = Parameters["Mode6"]
 
         if self.debugging == "Verbose":
             Domoticz.Debugging(2 + 4 + 8 + 16 + 64)
@@ -61,8 +61,8 @@ class BasePlugin:
 
         self.base_topic = Parameters["Mode1"].strip()
         self.domoticz_port = int(Parameters["Port"].strip())
-        self.delete_removed_devices = Parameters["Mode6"].strip()
-        self.domoticz_mqtt_used = Parameters["Mode2"].strip()
+        self.delete_removed_devices = Parameters["Mode5"].strip()
+        self.domoticz_mqtt_used = Parameters["Mode7"].strip()
         
         self.mqttClient = MqttClient(Parameters["Address"].strip().split(":")[0],
                                      Parameters["Address"].strip().split(":")[1],
@@ -70,9 +70,9 @@ class BasePlugin:
                                      self.onMQTTDisconnected,
                                      self.onMQTTPublish,
                                      self.onMQTTSubscribed)
-        self.gBridgeClient = gBridgeClient(Parameters["Mode3"].strip(),
-                                           Parameters["Mode4"].strip(),
-                                           Parameters["Mode5"].strip())
+        self.gBridgeClient = gBridgeClient(Parameters["Mode2"].strip(),
+                                           Parameters["Mode3"].strip(),
+                                           Parameters["Mode4"].strip())
         self.domoticz_client = DomoticzClient(self.domoticz_port)
 
         self.syncDevices()
