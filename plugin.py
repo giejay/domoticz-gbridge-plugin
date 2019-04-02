@@ -57,7 +57,7 @@ class BasePlugin:
         self.base_topic = Parameters["Mode1"].strip()
         self.domoticz_port = int(Parameters["Port"].strip())
         self.delete_removed_devices = Parameters["Mode5"].strip()
-        if Parameters["Mode6"].find("localhost") >= 0:
+        if Parameters["Address"].find('localhost') >= 0 or Parameters["Address"].find('127.0.0.1') >= 0:
             self.domoticz_mqtt_used = True
         else :
             self.domoticz_mqtt_used = False
