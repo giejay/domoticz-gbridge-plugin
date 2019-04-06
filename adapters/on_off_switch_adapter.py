@@ -35,8 +35,4 @@ class OnOffSwitchAdapter(Adapter):
     
     def publishState(self, mqtt_client, device, topic, message):
         topic = topic + '/' + str(message['idx']) + '/onoff/set'
-        if message['svalue1'] == 'On':
-            status = '1'
-        else:
-            status = '0'
-        mqtt_client.Publish(topic, status)
+        mqtt_client.Publish(topic, message['nvalue'])

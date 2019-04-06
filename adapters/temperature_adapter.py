@@ -34,7 +34,8 @@ class TemperatureAdapter(Adapter):
         return [4]
 
     def publishState(self, mqtt_client, device, topic, message):
-        temp = self.get_temperature(message, device)
-        Adapter.publishState(self, mqtt_client, device, topic, temp)
-        # Try to also set the ambient
-        Adapter.publishState(self, mqtt_client, device, topic.replace('tempset-setpoint', 'tempset-ambient'), temp)
+        if 'svalue1' in message:
+            temp = self.get_temperature(message['svalue1'], device)
+            topic = topic + '/' + str(message['idx'])
+            mqtt_client.Publish(topic + '/tempset-ambient/set', temp)
+            mqtt_client.Publish(topic + '/tempset-setpoint/set', temp)
