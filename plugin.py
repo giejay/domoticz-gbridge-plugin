@@ -3,11 +3,12 @@
     <description>
       Plugin to add support for <a href="https://github.com/kservices/gBridge">gBridge</a> project<br/><br/>
       Specify MQTT server, the base topic, so gBridge/{your user id} and the gBridge url + credentials<br/>
+      If using local MQTT server, add also "MQTT Client Gateway with LAN Interface", config on Topic "out" to have the live update.<br/>
     </description>
     <params>
         <param field="Address" label="MQTT Server address" width="300px" required="true" default="127.0.0.1:1883"/>
-        <param field="Username" label="MQTT username" width="300px" required="true" default=""/>
-        <param field="Password" label="MQTT password" width="300px" required="true" default="" password="true"/>
+        <param field="Username" label="MQTT username" width="300px" required="false" default=""/>
+        <param field="Password" label="MQTT password" width="300px" required="false" default="" password="true"/>
         <param field="Mode1" label="MQTT base topic" width="300px" required="true" default="gBridge/u1"/>
         <param field="Port" label="Domoticz port" width="300px" required="true" default="8080"/>
         <param field="Mode2" label="gBridge url" width="300px" required="true" default="http://localhost:8082"/>
@@ -56,7 +57,11 @@ class BasePlugin:
         self.base_topic = Parameters["Mode1"].strip()
         self.domoticz_port = int(Parameters["Port"].strip())
         self.delete_removed_devices = Parameters["Mode5"].strip()
-
+        if Parameters["Address"].find('localhost') >= 0 or Parameters["Address"].find('127.0.0.1') >= 0:
+            self.domoticz_mqtt_used = True
+        else :
+            self.domoticz_mqtt_used = False
+        
         self.mqttClient = MqttClient(Parameters["Address"].strip().split(":")[0],
                                      Parameters["Address"].strip().split(":")[1],
                                      self.onMQTTConnected,
@@ -111,7 +116,7 @@ class BasePlugin:
             self.mqttClient.Ping()
 
     def onMQTTConnected(self):
-        self.mqttClient.Subscribe([self.base_topic + '/#'])
+        self.mqttClient.Subscribe([self.base_topic + '/#','domoticz/out'])
 
     def onMQTTDisconnected(self):
         Domoticz.Debug("onMQTTDisconnected")
@@ -121,31 +126,46 @@ class BasePlugin:
 
     def onMQTTPublish(self, topic, message):
         Domoticz.Debug("MQTT message: " + topic + " " + str(message))
-
-        if message == 'SYNC':
-            self.syncDevices()
-        elif topic.endswith('/set'):
-            Domoticz.Debug('Published new state for device, topic: %s, state: %s' % (topic, message))
-        else:
-            match = re.search(self.base_topic + '/(.*)/(.*)', topic)
-
-            if match:
-                device_id = match.group(1)
-                # Backwards compatibility, previously the device name was used as topic name
-                if device_id in self.domoticzDevicesByName:
-                    device = self.domoticzDevicesByName[device_id]
-                elif device_id in self.domoticzDevicesById:
-                    device = self.domoticzDevicesById[device_id]
-                else:
-                    Domoticz.Log('Received message for device which is not in Domoticz: %s, skipping' % device_id)
-                    return
-                action = match.group(2)
+        if str(topic) == 'domoticz/out':
+            if message.get('name') is not None:
+                name = message['name']
+            elif message.get('Name') is not None:
+                name = message['Name']
+            else:
+                return
+            if name in self.domoticzDevicesByName:
+                device = self.domoticzDevicesByName[name]
                 adapter = getAdapter(device)
                 if adapter is not None:
-                    adapter.handleMqttMessage(device, str(message), action, self.domoticz_port)
-                    adapter.publishState(self.mqttClient, device, topic + '/set', message)
+                    adapter.publishState(self.mqttClient, device, self.base_topic , message)
                 else:
                     Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
+        else:        
+            if message == 'SYNC':
+                self.syncDevices()
+            elif topic.endswith('/set'):
+                Domoticz.Debug('Published new state for device, topic: %s, state: %s' % (topic, message))
+            else:
+                match = re.search(self.base_topic + '/(.*)/(.*)', topic)
+
+                if match:
+                    device_id = match.group(1)
+                    # Backwards compatibility, previously the device name was used as topic name
+                    if device_id in self.domoticzDevicesByName:
+                        device = self.domoticzDevicesByName[device_id]
+                    elif device_id in self.domoticzDevicesById:
+                        device = self.domoticzDevicesById[device_id]
+                    else:
+                        Domoticz.Log('Received message for device which is not in Domoticz: %s, skipping' % device_id)
+                        return
+                    action = match.group(2)
+                    adapter = getAdapter(device)
+                    if adapter is not None:
+                        adapter.handleMqttMessage(device, str(message), action, self.domoticz_port)
+                        if self.domoticz_mqtt_used == False:
+                            self.mqttClient.Publish(topic + '/set', message) #answer directly
+                    else:
+                        Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
 
 
 global _plugin

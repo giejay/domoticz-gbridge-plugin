@@ -2,6 +2,7 @@ from adapters.dimmable_adapter import DimmableAdapter
 from adapters.on_off_switch_adapter import OnOffSwitchAdapter
 from adapters.scene_adapter import SceneAdapter
 from adapters.temperature_adapter import TemperatureAdapter
+from adapters.temperature_sensor_adapter import TemperatureSensorAdapter
 
 adapter_by_type = {
     'Dimmer': DimmableAdapter(),
@@ -15,7 +16,10 @@ adapter_by_type = {
     'Scene': SceneAdapter(),
     'Group': SceneAdapter(),
     'Thermostat': TemperatureAdapter(),
-    'Door Lock': OnOffSwitchAdapter()
+    'Door Lock': OnOffSwitchAdapter(),
+    'Temp': TemperatureSensorAdapter(),
+    'Temp + Humidity':TemperatureSensorAdapter(),
+    'Temp + Humidity + Baro':TemperatureSensorAdapter()
 }
 
 def getAdapter(device):

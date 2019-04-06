@@ -32,3 +32,11 @@ class OnOffSwitchAdapter(Adapter):
 
     def getTraits(self):
         return [1]
+    
+    def publishState(self, mqtt_client, device, topic, message):
+        topic = topic + '/' + str(message['idx']) + '/onoff/set'
+        if message['svalue1'] == 'On':
+            status = '1'
+        else:
+            status = '0'
+        mqtt_client.Publish(topic, status)
