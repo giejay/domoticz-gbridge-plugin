@@ -57,11 +57,11 @@ class BasePlugin:
         self.base_topic = Parameters["Mode1"].strip()
         self.domoticz_port = int(Parameters["Port"].strip())
         self.delete_removed_devices = Parameters["Mode5"].strip()
-        if Parameters["Address"].find('localhost') >= 0 or Parameters["Address"].find('127.0.0.1') >= 0:
-            self.domoticz_mqtt_used = True
-        else :
+        if Parameters["Address"].find('mqtt.gbridge.io') >= 0:
             self.domoticz_mqtt_used = False
-        
+        else:
+            self.domoticz_mqtt_used = True
+
         self.mqttClient = MqttClient(Parameters["Address"].strip().split(":")[0],
                                      Parameters["Address"].strip().split(":")[1],
                                      self.onMQTTConnected,
@@ -116,7 +116,9 @@ class BasePlugin:
             self.mqttClient.Ping()
 
     def onMQTTConnected(self):
-        self.mqttClient.Subscribe([self.base_topic + '/#','domoticz/out'])
+        self.mqttClient.Subscribe([self.base_topic + '/#'])
+        if self.domoticz_mqtt_used:
+            self.mqttClient.Subscribe(['domoticz/out'])
 
     def onMQTTDisconnected(self):
         Domoticz.Debug("onMQTTDisconnected")
@@ -127,20 +129,18 @@ class BasePlugin:
     def onMQTTPublish(self, topic, message):
         Domoticz.Debug("MQTT message: " + topic + " " + str(message))
         if str(topic) == 'domoticz/out':
-            if message.get('name') is not None:
-                name = message['name']
-            elif message.get('Name') is not None:
-                name = message['Name']
+            if message.get('idx') is not None:
+                domoticz_id = str(message['idx'])
             else:
                 return
-            if name in self.domoticzDevicesByName:
-                device = self.domoticzDevicesByName[name]
+            if domoticz_id in self.domoticzDevicesById:
+                device = self.domoticzDevicesById[domoticz_id]
                 adapter = getAdapter(device)
                 if adapter is not None:
-                    adapter.publishState(self.mqttClient, device, self.base_topic , message)
+                    adapter.publishState(self.mqttClient, device, self.base_topic, message)
                 else:
-                    Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
-        else:        
+                    Domoticz.Error('No adapter registered to publish state for device: %s' % str(device))
+        else:
             if message == 'SYNC':
                 self.syncDevices()
             elif topic.endswith('/set'):
@@ -162,8 +162,8 @@ class BasePlugin:
                     adapter = getAdapter(device)
                     if adapter is not None:
                         adapter.handleMqttMessage(device, str(message), action, self.domoticz_port)
-                        if self.domoticz_mqtt_used == False:
-                            self.mqttClient.Publish(topic + '/set', message) #answer directly
+                        if not self.domoticz_mqtt_used:
+                            adapter.publishState(self.mqttClient, device, self.base_topic, message) # answer directly
                     else:
                         Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
 
