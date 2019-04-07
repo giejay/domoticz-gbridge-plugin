@@ -18,12 +18,16 @@ git clone https://github.com/giejay/domoticz-gbridge-plugin.git
 3. Make sure you add "127.0.0.1" to your Local Networks under Settings.
 4. Go to "Hardware" page and add new item with type "gBridge"
 5. Set your MQTT server address, gBridge config etc. to plugin settings and click Add
+6. If you are hosting gBridge locally and you want to the values pushed back to Google (so you can ask, Hey Google, is the light on?), add the MQTT Client Gateway with LAN interface to your hardware, see third screenshot
  
 Example of a hosted setup:
 ![alt text](https://raw.githubusercontent.com/giejay/domoticz-gbridge-plugin/master/example-hosted.png)
 
 Example of a local setup:
 ![alt text](https://raw.githubusercontent.com/giejay/domoticz-gbridge-plugin/master/example-local.png)
+
+Example of MQTT Client Gateway configuration:
+![alt text](https://raw.githubusercontent.com/giejay/domoticz-gbridge-plugin/master/example-local-mqtt.png)
 
 ## Configure devices
 For this plugin to know which devices it may add to the gBridge, it checks the description of the device.
