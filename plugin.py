@@ -86,7 +86,6 @@ class BasePlugin:
         Domoticz.Debug('Domoticz devices available for gBridge: ' + str(self.domoticzDevicesByName.keys()))
         self.gBridgeClient.syncDevices(self.domoticzDevicesByName, bridge_devices,
                                        self.delete_removed_devices == 'True')
-
     def onStop(self):
         Domoticz.Debug("onStop called")
 
@@ -131,6 +130,8 @@ class BasePlugin:
         if str(topic) == 'domoticz/out':
             if message.get('idx') is not None:
                 domoticz_id = str(message['idx'])
+                if message.get('Type') is not None and (message['Type'] == 'Scene' or message['Type'] == 'Group'):
+                    domoticz_id = 'group_' + domoticz_id
             else:
                 return
             if domoticz_id in self.domoticzDevicesById:

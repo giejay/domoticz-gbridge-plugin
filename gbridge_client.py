@@ -34,7 +34,8 @@ class gBridgeClient:
 
                 traits = adapter.getTraits()
                 type = adapter.getBridgeType(device)
-                self.createDevice(name, type, traits, device['idx'])
+                prefix = device['idx']
+                self.createDevice(name, type, traits, prefix)
 
         # remove devices in gbridge which are no longer in domoticz
         if delete_removed_devices:

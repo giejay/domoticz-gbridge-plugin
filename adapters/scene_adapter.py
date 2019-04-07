@@ -14,3 +14,6 @@ class SceneAdapter(OnOffSwitchAdapter):
     def publishState(self, mqtt_client, device, topic, message):
         #no state on scene, each device is updated if in the gbridge base
         return
+
+    def determineDeviceId(self, device):
+        return device['idx'].replace('group_', '')

@@ -14,7 +14,7 @@ class OnOffSwitchAdapter(Adapter):
 
         params = {
             'param': self.getParamType(),
-            'idx': device['idx'],
+            'idx': self.determineDeviceId(device),
             'switchcmd': command
         }
         Adapter.callDomoticzApi(self, domoticz_port, urllib.parse.urlencode(params))
@@ -36,3 +36,6 @@ class OnOffSwitchAdapter(Adapter):
     def publishState(self, mqtt_client, device, topic, message):
         topic = topic + '/' + str(message['idx']) + '/onoff/set'
         mqtt_client.Publish(topic, message['nvalue'])
+
+    def determineDeviceId(self, device):
+        return device['idx']
