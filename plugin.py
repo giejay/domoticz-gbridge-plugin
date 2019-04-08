@@ -43,6 +43,7 @@ class BasePlugin:
     mqttClient = None
     domoticzDevicesByName = None
     domoticzDevicesById = None
+    linkedDevices = None
 
     def onStart(self):
         self.debugging = Parameters["Mode6"]
@@ -81,6 +82,8 @@ class BasePlugin:
         Domoticz.Debug('Starting sync')
         bridge_devices = self.gBridgeClient.fetchDevicesFromBridge()
         domoticz_devices = self.domoticz_client.fetchDevicesFromDomoticz()
+        self.linkedDevices = self.domoticz_client.getLinkedDevices(domoticz_devices)
+        Domoticz.Debug('Linked devices: ' + str(self.linkedDevices))
         self.domoticzDevicesByName = self.domoticz_client.getDevicesByName(domoticz_devices)
         self.domoticzDevicesById = {x['idx']: x for x in list(self.domoticzDevicesByName.values())}
         Domoticz.Debug('Domoticz devices available for gBridge: ' + str(self.domoticzDevicesByName.keys()))
@@ -134,13 +137,19 @@ class BasePlugin:
                     domoticz_id = 'group_' + domoticz_id
             else:
                 return
+            device = None
             if domoticz_id in self.domoticzDevicesById:
                 device = self.domoticzDevicesById[domoticz_id]
+            elif domoticz_id in self.linkedDevices and self.linkedDevices[domoticz_id] in self.domoticzDevicesById:
+                # Get the device to which this device message is linked to, for example, device id 13 -> update device 12
+                device = self.domoticzDevicesById[self.linkedDevices[domoticz_id]]
+            if device is not None:
                 adapter = getAdapter(device)
                 if adapter is not None:
                     adapter.publishStateFromDomoticzTopic(self.mqttClient, device, self.base_topic, message)
                 else:
                     Domoticz.Error('No adapter registered to publish state for device: %s' % str(device))
+
         else:
             if message == 'SYNC':
                 self.syncDevices()

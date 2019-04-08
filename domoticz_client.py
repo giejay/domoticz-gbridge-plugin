@@ -26,6 +26,17 @@ class DomoticzClient:
                 domoticz_devices_by_name[name] = device
         return domoticz_devices_by_name
 
+    def getLinkedDevices(self, domoticz_devices):
+        linked_devices = {}
+        for device in domoticz_devices:
+            if "gBridge" in device['Description'] and "linkedDevices" in device['Description']:
+                match = re.search('linkedDevices:(.*)([\n|\r]?)', device['Description'])
+                if match:
+                    linked_ids = match.group(1).strip().split(",")
+                    for linked_id in linked_ids:
+                        linked_devices[linked_id] = device['idx']
+        return linked_devices
+
     def fetchDevicesFromDomoticz(self):
         url = "http://127.0.0.1:%d/json.htm?type=devices&filter=all&used=true&order=Name" % self.DomoticzPort
         req = urllib.request.Request(url)
