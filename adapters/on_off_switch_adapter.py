@@ -33,9 +33,12 @@ class OnOffSwitchAdapter(Adapter):
     def getTraits(self):
         return [1]
     
-    def publishState(self, mqtt_client, device, topic, message):
-        topic = topic + '/' + str(message['idx']) + '/onoff/set'
-        mqtt_client.Publish(topic, message['nvalue'])
+    def publishStateFromDomoticzTopic(self, mqtt_client, device, base_topic, message):
+        self.publishState(mqtt_client, device, base_topic, message['nvalue'])
+
+    def publishState(self, mqtt_client, device, base_topic, value):
+        base_topic = base_topic + '/' + str(self.determineDeviceId(device)) + '/onoff/set'
+        mqtt_client.Publish(base_topic, value)
 
     def determineDeviceId(self, device):
         return device['idx']

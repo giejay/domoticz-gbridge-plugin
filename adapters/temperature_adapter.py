@@ -33,9 +33,20 @@ class TemperatureAdapter(Adapter):
     def getTraits(self):
         return [4]
 
-    def publishState(self, mqtt_client, device, topic, message):
-        if 'svalue1' in message:
-            temp = self.get_temperature(message['svalue1'], device)
-            topic = topic + '/' + str(message['idx'])
-            mqtt_client.Publish(topic + '/tempset-ambient/set', temp)
-            mqtt_client.Publish(topic + '/tempset-setpoint/set', temp)
+    def publishState(self, mqtt_client, device, base_topic, value):
+        temp = self.get_temperature(value, device)
+        device_topic = base_topic + '/' + str(device['idx'])
+        mqtt_client.Publish(device_topic + '/tempset-ambient/set', temp)
+        mqtt_client.Publish(device_topic + '/tempset-setpoint/set', temp)
+
+    def publishStateFromDomoticzTopic(self, mqtt_client, device, base_topic, message):
+        device_topic = base_topic + '/' + str(device['idx'])
+        if message['dtype'] == 'Thermostat':
+            mqtt_client.Publish(device_topic + '/tempset-setpoint/set', message['svalue1'])
+        elif message['dtype'] == 'Temp':
+            mqtt_client.Publish(device_topic + '/tempset-ambient/set', str(message['nvalue']))
+        elif message['dtype'] == 'Humidity':
+            mqtt_client.Publish(device_topic + '/tempset-humidity/set', str(message['nvalue']))
+        elif message['dtype'] == 'Temp + Humidity':
+            mqtt_client.Publish(device_topic + '/tempset-ambient/set', str(message['svalue1']))
+            mqtt_client.Publish(device_topic + '/tempset-humidity/set', str(message['svalue2']))

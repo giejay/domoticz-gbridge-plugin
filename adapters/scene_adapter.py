@@ -11,8 +11,11 @@ class SceneAdapter(OnOffSwitchAdapter):
     def getParamType(self):
         return 'switchscene'
     
-    def publishState(self, mqtt_client, device, topic, message):
+    def publishState(self, mqtt_client, device, base_topic, value):
         #no state on scene, each device is updated if in the gbridge base
+        return
+
+    def publishStateFromDomoticzTopic(self, mqtt_client, device, base_topic, message):
         return
 
     def determineDeviceId(self, device):

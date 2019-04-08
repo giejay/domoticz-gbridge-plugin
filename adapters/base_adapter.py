@@ -23,5 +23,8 @@ class Adapter:
         response = urllib.request.urlopen(req).read()
         return response.decode('utf-8')
 
-    def publishState(self, mqtt_client, device, topic, message):
+    def publishState(self, mqtt_client, device, base_topic, value):
+        raise NotImplementedError("Please Implement this method")
+
+    def publishStateFromDomoticzTopic(self, mqtt_client, device, base_topic, message):
         raise NotImplementedError("Please Implement this method")

@@ -20,8 +20,12 @@ class DimmableAdapter(OnOffSwitchAdapter):
     def getTraits(self):
         return [1, 2]
 
-    def publishState(self, mqtt_client, device, topic, message):
-        OnOffSwitchAdapter.publishState(self, mqtt_client, device, topic, message)
+    def publishStateFromDomoticzTopic(self, mqtt_client, device, base_topic, message):
+        OnOffSwitchAdapter.publishStateFromDomoticzTopic(self, mqtt_client, device, base_topic, message)
         if message.get('svalue1') is not None:
-            topic = topic + '/' + str(message['idx'])
-            mqtt_client.Publish(topic + '/brightness/set', str(message['svalue1']))
+            base_topic = base_topic + '/' + str(message['idx'])
+            mqtt_client.Publish(base_topic + '/brightness/set', str(message['svalue1']))
+
+    def publishState(self, mqtt_client, device, base_topic, value):
+        OnOffSwitchAdapter.publishState(self, mqtt_client, device, base_topic, value)
+        # todo check how to set the brightness next to on/off
