@@ -12,8 +12,7 @@
         <param field="Mode1" label="MQTT base topic" width="300px" required="true" default="gBridge/u1"/>
         <param field="Port" label="Domoticz port" width="300px" required="true" default="8080"/>
         <param field="Mode2" label="gBridge url" width="300px" required="true" default="http://localhost:8082"/>
-        <param field="Mode3" label="gBridge username" width="300px" required="true" default="username"/>
-        <param field="Mode4" label="gBridge password" width="300px" required="true" default="password" password="true"/>
+        <param field="Mode3" label="gBridge APIKey" width="300px" required="true" default=""/>
         <param field="Mode5" label="Delete removed Domoticz devices from gBridge" width="75px">
             <options>
                 <option label="True" value="True"/>
@@ -44,6 +43,7 @@ class BasePlugin:
     domoticzDevicesByName = None
     domoticzDevicesById = None
     linkedDevices = None
+    token = None
 
     def onStart(self):
         self.debugging = Parameters["Mode6"]
@@ -70,8 +70,7 @@ class BasePlugin:
                                      self.onMQTTPublish,
                                      self.onMQTTSubscribed)
         self.gBridgeClient = gBridgeClient(Parameters["Mode2"].strip(),
-                                           Parameters["Mode3"].strip(),
-                                           Parameters["Mode4"].strip())
+                                           Parameters["Mode3"].strip())
         self.domoticz_client = DomoticzClient(self.domoticz_port)
 
         self.syncDevices()
@@ -80,7 +79,8 @@ class BasePlugin:
 
     def syncDevices(self):
         Domoticz.Debug('Starting sync')
-        bridge_devices = self.gBridgeClient.fetchDevicesFromBridge()
+        self.token = self.gBridgeClient.getToken()
+        bridge_devices = self.gBridgeClient.fetchDevicesFromBridge(self.token)
         domoticz_devices = self.domoticz_client.fetchDevicesFromDomoticz()
         self.linkedDevices = self.domoticz_client.getLinkedDevices(domoticz_devices)
         Domoticz.Debug('Linked devices: ' + str(self.linkedDevices))
@@ -88,7 +88,7 @@ class BasePlugin:
         self.domoticzDevicesById = {x['idx']: x for x in list(self.domoticzDevicesByName.values())}
         Domoticz.Debug('Domoticz devices available for gBridge: ' + str(self.domoticzDevicesByName.keys()))
         self.gBridgeClient.syncDevices(self.domoticzDevicesByName, bridge_devices,
-                                       self.delete_removed_devices == 'True')
+                                       self.delete_removed_devices == 'True', self.token)
     def onStop(self):
         Domoticz.Debug("onStop called")
 
@@ -129,6 +129,7 @@ class BasePlugin:
         Domoticz.Debug("onMQTTSubscribed")
 
     def onMQTTPublish(self, topic, message):
+        # Todo create handlers for each type of message/topic
         Domoticz.Debug("MQTT message: " + topic + " " + str(message))
         if str(topic) == 'domoticz/out':
             if message.get('idx') is not None:

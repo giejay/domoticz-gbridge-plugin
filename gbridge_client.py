@@ -1,27 +1,30 @@
-import Domoticz
 import json
 import urllib.parse
 import urllib.request
-from base64 import b64encode
-from urllib.error import URLError, HTTPError
 from json import JSONDecodeError
+from urllib.error import URLError, HTTPError
+
+import Domoticz
+
 from adapters import getAdapter
 
 
 class gBridgeClient:
     Address = ""
-    Username = ""
-    Password = ""
 
     brightness_devices = ['Blinds', 'Blinds Inverted', 'Blinds Percentage', 'Dimmer', 'Blinds Percentage Inverted']
 
-    def __init__(self, address, username, password):
+    def __init__(self, address):
         Domoticz.Debug("gBridgeClient::__init__")
         self.Address = address
-        self.Username = username
-        self.Password = password
 
-    def syncDevices(self, domoticz_devices_by_name, bridge_devices, delete_removed_devices):
+    def getToken(self, api_key):
+        gBridgeUrl = "%s/api/v2/auth/token" % self.Address
+        req = urllib.request.Request(gBridgeUrl, method='POST')
+        req.add_header('apikey', api_key)
+        return self.callAPI(req, 'Fetch token')['access_token']
+
+    def syncDevices(self, domoticz_devices_by_name, bridge_devices, delete_removed_devices, token):
         bridge_devices_by_name = {x['name']: x for x in bridge_devices}
 
         # Add devices which are not in gBridge yet
@@ -35,28 +38,28 @@ class gBridgeClient:
                 traits = adapter.getTraits()
                 type = adapter.getBridgeType(device)
                 prefix = device['idx']
-                self.createDevice(name, type, traits, prefix)
+                self.createDevice(name, type, traits, prefix, token)
 
         # remove devices in gbridge which are no longer in domoticz
         if delete_removed_devices:
             for device in bridge_devices:
                 if device['name'] not in domoticz_devices_by_name:
-                    self.deleteDevice(device['device_id'])
+                    self.deleteDevice(device['device_id'], token)
 
-    def fetchDevicesFromBridge(self):
+    def fetchDevicesFromBridge(self, token):
         url = "%s/api/device" % self.Address
         req = urllib.request.Request(url)
-        req.add_header("Authorization", 'Basic %s' % self.getAuthHeader())
+        req.add_header("Authorization", 'Bearer %s' % token)
         try:
             return json.loads(self.callAPI(req, 'Fetching all devices from gBridge'))
         except JSONDecodeError as e:
             Domoticz.Error('Could not decode JSON due to: %s, json: %s' % (e.msg, e.doc))
             raise e
 
-    def deleteDevice(self, id):
+    def deleteDevice(self, id, token):
         gBridgeUrl = "%s/api/device/%s" % (self.Address, id)
         req = urllib.request.Request(gBridgeUrl, method='DELETE')
-        req.add_header("Authorization", 'Basic %s' % self.getAuthHeader())
+        req.add_header("Authorization", 'Bearer %s' % token)
         return self.callAPI(req, 'Delete device %s' % id) == 'Created'
 
     def callAPI(self, request, action):
@@ -75,13 +78,10 @@ class gBridgeClient:
             Domoticz.Debug('Successfully executed action: %s, response: %s' % (action, response))
             return response
 
-    def createDevice(self, name, type, traits, id):
+    def createDevice(self, name, type, traits, id, token):
         values = {'name': name, 'type': type, 'traits': traits, 'topicPrefix': id}
         data = json.dumps(values).encode('ascii')
         req = urllib.request.Request("%s/api/device" % self.Address, data)
         req.add_header('Content-Type', 'application/json')
-        req.add_header("Authorization", 'Basic %s' % self.getAuthHeader())
+        req.add_header("Authorization", 'Bearer %s' % token)
         return self.callAPI(req, 'Try to create device %s for type %s with traits %s' % (name, type, str(traits)))
-
-    def getAuthHeader(self):
-        return b64encode(bytes("%s:%s" % (self.Username, self.Password), 'utf-8')).decode("ascii")
