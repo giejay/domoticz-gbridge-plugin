@@ -20,7 +20,6 @@ class MqttClient:
         self.mqttDisconnectedCb = mqttDisconnectedCb
         self.mqttPublishCb = mqttPublishCb
         self.mqttSubackCb = mqttSubackCb
-        self.Open()
 
     def __str__(self):
         Domoticz.Debug("MqttClient::__str__")
@@ -36,7 +35,7 @@ class MqttClient:
         self.isConnected = False
 
         Protocol = "MQTT"
-        if (self.Port == "8883"): 
+        if (self.Port == "8883"):
             Protocol = "MQTTS"
 
         self.mqttConn = Domoticz.Connection(Name=self.Address, Transport="TCP/IP", Protocol=Protocol, Address=self.Address, Port=self.Port)
@@ -122,5 +121,5 @@ class MqttClient:
                     message = json.loads(rawmessage)
                 except ValueError:
                     message = rawmessage
-                    
+
                 self.mqttPublishCb(topic, message)

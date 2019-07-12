@@ -38,12 +38,13 @@ from gbridge_client import gBridgeClient
 from domoticz_client import DomoticzClient
 from mqtt import MqttClient
 
+import json
 
 class BasePlugin:
-    mqttClient = None
     domoticzDevicesByName = None
     domoticzDevicesById = None
     linkedDevices = None
+    mqttClients = {}
 
     def onStart(self):
         self.debugging = Parameters["Mode6"]
@@ -58,17 +59,16 @@ class BasePlugin:
         self.base_topic = Parameters["Mode1"].strip()
         self.domoticz_port = int(Parameters["Port"].strip())
         self.delete_removed_devices = Parameters["Mode5"].strip()
-        if Parameters["Address"].find('mqtt.gbridge.io') >= 0:
-            self.domoticz_mqtt_used = False
-        else:
-            self.domoticz_mqtt_used = True
+        self.local_setup = Parameters["Address"] is not 'mqtt.gbridge.io:8883'
 
-        self.mqttClient = MqttClient(Parameters["Address"].strip().split(":")[0],
-                                     Parameters["Address"].strip().split(":")[1],
-                                     self.onMQTTConnected,
-                                     self.onMQTTDisconnected,
-                                     self.onMQTTPublish,
-                                     self.onMQTTSubscribed)
+        for address in Parameters["Address"].split(","):
+            self.mqttClients[address] = MqttClient(address.split(":")[0].strip(),
+                                                   address.split(":")[1].strip(),
+                                                   lambda: self.onMQTTConnected(address),
+                                                   self.onMQTTDisconnected,
+                                                   self.onMQTTPublish,
+                                                   self.onMQTTSubscribed)
+            self.mqttClients[address].Open()
         self.gBridgeClient = gBridgeClient(Parameters["Mode2"].strip(),
                                            Parameters["Mode3"].strip(),
                                            Parameters["Mode4"].strip())
@@ -89,6 +89,7 @@ class BasePlugin:
         Domoticz.Debug('Domoticz devices available for gBridge: ' + str(self.domoticzDevicesByName.keys()))
         self.gBridgeClient.syncDevices(self.domoticzDevicesByName, bridge_devices,
                                        self.delete_removed_devices == 'True')
+
     def onStop(self):
         Domoticz.Debug("onStop called")
 
@@ -97,30 +98,36 @@ class BasePlugin:
 
     def onConnect(self, Connection, Status, Description):
         Domoticz.Debug("onConnect called")
-        self.mqttClient.onConnect(Connection, Status, Description)
+        for mqttClient in self.mqttClients.values():
+            mqttClient.onConnect(Connection, Status, Description)
 
     def onDisconnect(self, Connection):
-        self.mqttClient.onDisconnect(Connection)
+        pass
 
     def onMessage(self, Connection, Data):
         Domoticz.Debug('Incoming message!' + str(Data))
-        self.mqttClient.onMessage(Connection, Data)
+        for mqttClient in self.mqttClients.values():
+            mqttClient.onMessage(Connection, Data)
 
     def onHeartbeat(self):
         Domoticz.Debug("Heartbeating...")
 
-        # Reconnect if connection has dropped
-        if self.mqttClient.mqttConn is None or (
-                not self.mqttClient.mqttConn.Connecting() and not self.mqttClient.mqttConn.Connected() or not self.mqttClient.isConnected):
-            Domoticz.Debug("Reconnecting")
-            self.mqttClient.Open()
-        else:
-            self.mqttClient.Ping()
+        for mqttClient in self.mqttClients.values():
+            # Reconnect if connection has dropped
+            if mqttClient.mqttConn is None or (
+                    not mqttClient.mqttConn.Connecting() and not mqttClient.mqttConn.Connected() or not mqttClient.isConnected):
+                Domoticz.Debug("Reconnecting")
+                mqttClient.Open()
+            else:
+                mqttClient.Ping()
 
-    def onMQTTConnected(self):
-        self.mqttClient.Subscribe([self.base_topic + '/#'])
-        if self.domoticz_mqtt_used:
-            self.mqttClient.Subscribe(['domoticz/out'])
+
+    def onMQTTConnected(self, address):
+        Domoticz.Log("MQTT Connected")
+        self.mqttClients[address].Subscribe([self.base_topic + '/#'])
+        if 'mqtt.gbridge.io' not in address:
+            self.mqttClients[address].Subscribe(['domoticz/out'])
+
 
     def onMQTTDisconnected(self):
         Domoticz.Debug("onMQTTDisconnected")
@@ -146,7 +153,8 @@ class BasePlugin:
             if device is not None:
                 adapter = getAdapter(device)
                 if adapter is not None:
-                    adapter.publishStateFromDomoticzTopic(self.mqttClient, device, self.base_topic, message)
+                    for mqttClient in self.mqttClients.values():
+                        adapter.publishStateFromDomoticzTopic(mqttClient, device, self.base_topic, message)
                 else:
                     Domoticz.Error('No adapter registered to publish state for device: %s' % str(device))
 
@@ -172,8 +180,9 @@ class BasePlugin:
                     adapter = getAdapter(device)
                     if adapter is not None:
                         adapter.handleMqttMessage(device, str(message), action, self.domoticz_port)
-                        if not self.domoticz_mqtt_used:
-                            adapter.publishState(self.mqttClient, device, self.base_topic, message) # answer directly
+                        if not self.local_setup:
+                            for mqttClient in self.mqttClients.values():
+                                adapter.publishState(mqttClient, device, self.base_topic, message)  # answer directly
                     else:
                         Domoticz.Error('No adapter registered for action: %s for device: %s' % (action, str(device)))
 

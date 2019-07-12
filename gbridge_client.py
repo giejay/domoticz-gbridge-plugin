@@ -13,8 +13,6 @@ class gBridgeClient:
     Username = ""
     Password = ""
 
-    brightness_devices = ['Blinds', 'Blinds Inverted', 'Blinds Percentage', 'Dimmer', 'Blinds Percentage Inverted']
-
     def __init__(self, address, username, password):
         Domoticz.Debug("gBridgeClient::__init__")
         self.Address = address
