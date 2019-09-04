@@ -13,6 +13,7 @@ adapter_by_type = {
     'On/Off': OnOffSwitchAdapter(),
     'Push On Button': OnOffSwitchAdapter(),
     'Push Off Button': OnOffSwitchAdapter(),
+    'Selector': OnOffSwitchAdapter(),
     'Scene': SceneAdapter(),
     'Group': SceneAdapter(),
     'Thermostat': TemperatureAdapter(),
