@@ -29,8 +29,11 @@ class TemperatureSensorAdapter(Adapter):
 
     def publishStateFromDomoticzTopic(self, mqtt_client, device, base_topic, message):
         base_topic = base_topic + '/' + str(message['idx'])
-        if message['dtype'] == 'Temp':
-            mqtt_client.Publish(base_topic + '/tempset-ambient/set', str(message['nvalue']))
+        if message['dtype'] == 'Temp':            
+            if message.get('svalue1') is not None: 
+                mqtt_client.Publish(base_topic + '/tempset-ambient/set', str(message['svalue1']))
+            else:
+                mqtt_client.Publish(base_topic + '/tempset-ambient/set', str(message['nvalue']))
         elif message['dtype'] == 'Humidity':
             mqtt_client.Publish(base_topic + '/tempset-humidity/set', str(message['nvalue']))
         elif message['dtype'] == 'Temp + Humidity' or message['dtype'] == 'Temp + Humidity + Baro':

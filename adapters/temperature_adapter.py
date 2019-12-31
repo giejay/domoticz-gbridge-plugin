@@ -44,7 +44,10 @@ class TemperatureAdapter(Adapter):
         if message['dtype'] == 'Thermostat':
             mqtt_client.Publish(device_topic + '/tempset-setpoint/set', message['svalue1'])
         elif message['dtype'] == 'Temp':
-            mqtt_client.Publish(device_topic + '/tempset-ambient/set', str(message['nvalue']))
+            if message.get('svalue1') is not None: 
+                mqtt_client.Publish(device_topic + '/tempset-ambient/set', str(message['svalue1']))
+            else:
+                mqtt_client.Publish(device_topic + '/tempset-ambient/set', str(message['nvalue']))
         elif message['dtype'] == 'Humidity':
             mqtt_client.Publish(device_topic + '/tempset-humidity/set', str(message['nvalue']))
         elif message['dtype'] == 'Temp + Humidity':
